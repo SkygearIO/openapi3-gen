@@ -8,9 +8,18 @@ import (
 	"github.com/skygeario/openapi3-gen/internal"
 )
 
+var baseDir string
 var outputFile string
 
 func init() {
+	workDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	flag.StringVar(&baseDir, "dir", workDir, "project base directory")
+	flag.StringVar(&baseDir, "d", workDir, "project base directory (shorthand)")
+
 	flag.StringVar(&outputFile, "output", "", "output OpenAPI specification file")
 	flag.StringVar(&outputFile, "o", "", "output OpenAPI specification file (shorthand)")
 }
@@ -29,12 +38,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	workDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	err = internal.Run(workDir, patterns, outputFile)
+	err := internal.Run(baseDir, patterns, outputFile)
 	if err != nil {
 		panic(err)
 	}
