@@ -2,10 +2,12 @@ package internal
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/skygeario/openapi3-gen/pkg/processor"
 	"github.com/skygeario/openapi3-gen/pkg/scanner"
+	"gopkg.in/yaml.v2"
 )
 
 type Error struct {
@@ -29,13 +31,21 @@ func Run(baseDir string, patterns []string, outputFile string) error {
 		return err
 	}
 
-	spec, errs := psr.End()
+	oapi, errs := psr.End()
 	if len(errs) > 0 {
 		return Error{errs}
 	}
 
-	// TODO: output spec in yaml
-	fmt.Println(spec)
+	oapiData, err := yaml.Marshal(oapi)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	if outputFile != "" {
+		err = ioutil.WriteFile(outputFile, oapiData, 0644)
+	} else {
+		_, err = fmt.Print(string(oapiData))
+	}
+
+	return err
 }
