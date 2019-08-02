@@ -8,7 +8,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-type ScannerHandler func(*token.FileSet, *ast.File) error
+type ScannerHandler func(*token.FileSet, *ast.File)
 
 type Scanner struct {
 	fset    *token.FileSet
@@ -40,10 +40,7 @@ func (scn *Scanner) Scan(dir string, patterns []string) error {
 				return err
 			}
 
-			err = scn.handler(scn.fset, astFile)
-			if err != nil {
-				return err
-			}
+			scn.handler(scn.fset, astFile)
 		}
 	}
 
