@@ -1,7 +1,9 @@
 package processor
 
 import (
+	"fmt"
 	"go/ast"
+	"strings"
 
 	"github.com/skygeario/openapi3-gen/pkg/openapi3"
 )
@@ -22,7 +24,40 @@ func newContext(oapi *openapi3.OpenAPIObject, node ast.Node) *context {
 	return &context{oapi: oapi, node: node}
 }
 
+func (ctx *context) setContextObject(scope interface{}) {
+	switch obj := scope.(type) {
+	case *openapi3.ServerObject:
+		ctx.server = obj
+	case *openapi3.OperationObject:
+		ctx.operation = obj
+	case *openapi3.ParameterObject:
+		ctx.parameter = obj
+		ctx.requestBody = nil
+		ctx.response = nil
+	case *openapi3.RequestBodyObject:
+		ctx.parameter = nil
+		ctx.requestBody = obj
+		ctx.response = nil
+	case *openapi3.ResponseObject:
+		ctx.parameter = nil
+		ctx.requestBody = nil
+		ctx.response = obj
+	case *openapi3.CallbackObject:
+		ctx.parameter = nil
+		ctx.requestBody = nil
+		ctx.response = nil
+		ctx.callback = obj
+	default:
+		panic(fmt.Errorf("unknown contextual object: %T", scope))
+	}
+}
+
 func (ctx *context) Consume(annotation Annotation) error {
-	// TODO: consume annotation and update context
-	return nil
+	handler, exists := handlers[annotation.Type]
+	if !exists {
+		panic(fmt.Errorf("unknown annotation type: %v", annotation.Type))
+	}
+
+	body := strings.Join(annotation.Body, "\n")
+	return handler(ctx, annotation.Argument, body)
 }
