@@ -384,7 +384,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		if ctx.operation == nil {
 			callback := openapi3.NewCallbackObject()
 			ctx.oapi.Components.Callbacks[arg] = callback
-			ctx.callback = callback
+			ctx.setContextObject(callback)
 		} else {
 			var callback openapi3.Callback
 			var callbackKey string
@@ -394,7 +394,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 				id := matches[2]
 				callback = openapi3.MakeCallbackRef(id)
 			} else {
-				callback := openapi3.NewCallbackObject()
+				callback = openapi3.NewCallbackObject()
 				callbackKey = arg
 				ctx.setContextObject(callback)
 			}
