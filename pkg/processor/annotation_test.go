@@ -93,5 +93,31 @@ func TestAnnotation(t *testing.T) {
 			)
 		})
 
+		Convey("should trim empty lines in body", func() {
+			So(
+				ParseAnnotations([]string{
+					"   @API  argument ",
+					"  ",
+					"",
+				}),
+				ShouldResemble,
+				[]Annotation{
+					Annotation{Type: AnnotationTypeAPI, Argument: "argument", Body: []string{}},
+				},
+			)
+			So(
+				ParseAnnotations([]string{
+					"   @API  argument ",
+					" test  ",
+					"",
+				}),
+				ShouldResemble,
+				[]Annotation{
+					Annotation{Type: AnnotationTypeAPI, Argument: "argument", Body: []string{
+						"test",
+					}},
+				},
+			)
+		})
 	})
 }

@@ -61,6 +61,18 @@ func tryParseAnnotation(line string) (annotation Annotation, ok bool) {
 	return
 }
 
+func trimEmptyLines(body []string) []string {
+	start := 0
+	for start < len(body) && body[start] == "" {
+		start++
+	}
+	end := len(body) - 1
+	for end >= start && body[end] == "" {
+		end--
+	}
+	return body[start : end+1]
+}
+
 func ParseAnnotations(lines []string) []Annotation {
 	var annotations []Annotation
 	var current *Annotation
@@ -70,6 +82,7 @@ func ParseAnnotations(lines []string) []Annotation {
 		annotation, ok := tryParseAnnotation(line)
 		if ok {
 			if current != nil {
+				current.Body = trimEmptyLines(current.Body)
 				annotations = append(annotations, *current)
 			}
 			current = &annotation
@@ -78,6 +91,7 @@ func ParseAnnotations(lines []string) []Annotation {
 		}
 	}
 	if current != nil {
+		current.Body = trimEmptyLines(current.Body)
 		annotations = append(annotations, *current)
 	}
 	return annotations
