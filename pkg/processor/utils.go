@@ -4,6 +4,8 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
+
+	"github.com/skygeario/openapi3-gen/pkg/openapi3"
 )
 
 const jsonMediaType = "application/json"
@@ -30,15 +32,29 @@ func extractConstValue(n ast.Node) (value string, ok bool) {
 	return
 }
 
-func translateJSONSchemaReference(json map[string]interface{}) {
-	if ref, hasRef := json["$ref"].(string); len(json) == 1 && hasRef && ref[0] == '#' {
-		ref = "#/components/schemas/" + ref[1:]
-		json["$ref"] = ref
-	} else {
-		for _, value := range json {
-			if subJSON, ok := value.(map[string]interface{}); ok {
-				translateJSONSchemaReference(subJSON)
+func translateJSONSchema(json interface{}) interface{} {
+	switch typedJSON := json.(type) {
+	case map[string]interface{}:
+		if ref, hasRef := typedJSON["$ref"].(string); len(typedJSON) == 1 && hasRef {
+			if len(ref) > 1 && ref[0] == '#' {
+				id := ref[1:]
+				return map[string]interface{}(openapi3.MakeSchemaRef(id))
 			}
 		}
+		result := map[string]interface{}{}
+		for key, value := range typedJSON {
+			result[key] = translateJSONSchema(value)
+		}
+		return result
+
+	case []interface{}:
+		result := make([]interface{}, len(typedJSON))
+		for i, value := range typedJSON {
+			result[i] = translateJSONSchema(value)
+		}
+		return result
+
+	default:
+		return json
 	}
 }

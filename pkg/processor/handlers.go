@@ -303,7 +303,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 				return errors.Wrap(err, "invalid json schema")
 			}
 
-			translateJSONSchemaReference(jsonSchema)
+			jsonSchema = translateJSONSchema(jsonSchema).(map[string]interface{})
 
 			id, _ = jsonSchema["$id"].(string)
 			delete(jsonSchema, "$id")
