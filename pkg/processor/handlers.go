@@ -169,17 +169,18 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		operation.Summary = summary
 		operation.Description = body
 
-		pathItem := ctx.oapi.Paths[path]
-		if !pathItem.SetOperation(method, operation) {
-			return fmt.Errorf("invalid HTTP method: %v", method)
-		}
-
 		var paths openapi3.Paths
 		if ctx.callback != nil {
 			paths = ctx.callback
 		} else {
 			paths = &ctx.oapi.Paths
 		}
+
+		pathItem := paths.GetPath(path)
+		if !pathItem.SetOperation(method, operation) {
+			return fmt.Errorf("invalid HTTP method: %v", method)
+		}
+
 		paths.SetPath(path, pathItem)
 		ctx.setContextObject(operation)
 

@@ -4,6 +4,7 @@ import "net/http"
 
 type Paths interface {
 	SetPath(path string, item PathItemObject)
+	GetPath(path string) PathItemObject
 }
 
 type PathsObject map[string]PathItemObject
@@ -14,6 +15,10 @@ func NewPathsObject() *PathsObject {
 
 func (paths *PathsObject) SetPath(path string, item PathItemObject) {
 	(*paths)[path] = item
+}
+
+func (paths *PathsObject) GetPath(path string) PathItemObject {
+	return (*paths)[path]
 }
 
 type PathItemObject struct {
