@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	"github.com/skygeario/openapi3-gen/internal"
 )
 
 var baseDir string
@@ -35,7 +33,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	err := internal.Run(baseDir, patterns, outputFile)
+	err := run(baseDir, patterns, outputFile)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package internal
+package main
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Error struct {
+type runnerError struct {
 	inner []error
 }
 
-func (err Error) Error() string {
+func (err runnerError) Error() string {
 	lines := []string{"failed to process: "}
 	for _, err := range err.inner {
 		lines = append(lines, err.Error())
@@ -22,7 +22,7 @@ func (err Error) Error() string {
 	return strings.Join(lines, "\n")
 }
 
-func Run(baseDir string, patterns []string, outputFile string) error {
+func run(baseDir string, patterns []string, outputFile string) error {
 	psr := processor.New()
 	scn := scanner.New(psr.Process)
 
@@ -33,7 +33,7 @@ func Run(baseDir string, patterns []string, outputFile string) error {
 
 	oapi, errs := psr.End()
 	if len(errs) > 0 {
-		return Error{errs}
+		return runnerError{errs}
 	}
 
 	oapiData, err := yaml.Marshal(oapi)
