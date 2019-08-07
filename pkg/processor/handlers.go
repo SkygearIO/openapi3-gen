@@ -78,7 +78,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		}
 		return nil
 	},
-	AnnotationTypeSecurity: func(ctx *context, arg string, body string) error {
+	AnnotationTypeSecurityRequirement: func(ctx *context, arg string, body string) error {
 		args := strings.Fields(arg)
 		if len(args) < 1 {
 			return fmt.Errorf("must provide security scheme name")
@@ -94,7 +94,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		}
 		return nil
 	},
-	AnnotationTypeSecurityAPIKey: func(ctx *context, arg string, body string) error {
+	AnnotationTypeSecuritySchemeAPIKey: func(ctx *context, arg string, body string) error {
 		fields := strings.Fields(arg)
 		if len(fields) != 3 {
 			return fmt.Errorf("must provide scheme name, parameter name and location")
@@ -116,7 +116,7 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		ctx.oapi.Components.SecuritySchemes[name] = scheme
 		return nil
 	},
-	AnnotationTypeSecurityHTTP: func(ctx *context, arg string, body string) error {
+	AnnotationTypeSecuritySchemeHTTP: func(ctx *context, arg string, body string) error {
 		fields := strings.Fields(arg)
 		if len(fields) < 2 {
 			return fmt.Errorf("must provide scheme name and HTTP auth scheme")

@@ -15,9 +15,9 @@ const (
 	AnnotationTypeServer
 	AnnotationTypeVariable
 	AnnotationTypeTag
-	AnnotationTypeSecurity
-	AnnotationTypeSecurityAPIKey
-	AnnotationTypeSecurityHTTP
+	AnnotationTypeSecurityRequirement
+	AnnotationTypeSecuritySchemeAPIKey
+	AnnotationTypeSecuritySchemeHTTP
 	AnnotationTypeOperation
 	AnnotationTypeParameter
 	AnnotationTypeRequestBody

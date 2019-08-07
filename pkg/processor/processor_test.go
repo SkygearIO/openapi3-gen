@@ -35,12 +35,13 @@ func TestProcessor(t *testing.T) {
 						@Variable app my_app app1 app2 app3
 							App ID
 
-					@SecurityAPIKey api_key header X-API-Key
+					@SecuritySchemeAPIKey api_key header X-API-Key
 						API Key
-					@SecurityHTTP access_token Bearer JWT
+					@SecuritySchemeHTTP access_token Bearer JWT
 						Access Token
-					@Security api_key
-					@Security access_token
+
+					@SecurityRequirement api_key
+					@SecurityRequirement access_token
 				
 					@Tag User
 						User APIs
@@ -257,7 +258,7 @@ func TestProcessor(t *testing.T) {
 							Create new user with specified information.
 	
 							@Tag User Object
-							@Security admin_key
+							@SecurityRequirement admin_key
 						
 							@RequestBody {CreateUserRequest}
 							@Response default {ErrorResponse}

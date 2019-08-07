@@ -14,9 +14,9 @@ func _() {
 	_ = x[AnnotationTypeServer-3]
 	_ = x[AnnotationTypeVariable-4]
 	_ = x[AnnotationTypeTag-5]
-	_ = x[AnnotationTypeSecurity-6]
-	_ = x[AnnotationTypeSecurityAPIKey-7]
-	_ = x[AnnotationTypeSecurityHTTP-8]
+	_ = x[AnnotationTypeSecurityRequirement-6]
+	_ = x[AnnotationTypeSecuritySchemeAPIKey-7]
+	_ = x[AnnotationTypeSecuritySchemeHTTP-8]
 	_ = x[AnnotationTypeOperation-9]
 	_ = x[AnnotationTypeParameter-10]
 	_ = x[AnnotationTypeRequestBody-11]
@@ -27,9 +27,9 @@ func _() {
 	_ = x[AnnotationTypeMaximum-16]
 }
 
-const _AnnotationType_name = "IDAPIVersionServerVariableTagSecuritySecurityAPIKeySecurityHTTPOperationParameterRequestBodyResponseJSONSchemaJSONExampleCallbackMaximum"
+const _AnnotationType_name = "IDAPIVersionServerVariableTagSecurityRequirementSecuritySchemeAPIKeySecuritySchemeHTTPOperationParameterRequestBodyResponseJSONSchemaJSONExampleCallbackMaximum"
 
-var _AnnotationType_index = [...]uint8{0, 2, 5, 12, 18, 26, 29, 37, 51, 63, 72, 81, 92, 100, 110, 121, 129, 136}
+var _AnnotationType_index = [...]uint8{0, 2, 5, 12, 18, 26, 29, 48, 68, 86, 95, 104, 115, 123, 133, 144, 152, 159}
 
 func (i AnnotationType) String() string {
 	if i < 0 || i >= AnnotationType(len(_AnnotationType_index)-1) {
