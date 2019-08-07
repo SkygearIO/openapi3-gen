@@ -15,26 +15,11 @@ type annotationHandler func(ctx *context, arg string, body string) error
 // e.g. {EmptyResponse}
 var refArgFormat = regexp.MustCompile(`^{([^\s]+)}$`)
 
-// e.g. master_key: X-API-Key in header
-var apiKeySecArgFormat = regexp.MustCompile(`^([^\s]+)\s*:\s*([^\s]+)\s+in\s+([^\s]+)$`)
-
-// e.g. access_token: JWT Bearer
-var httpSecArgFormat = regexp.MustCompile(`^([^\s]+)\s*:\s*([^\s]+)(?:\s+([^\s]+))?$`)
-
 // e.g. GET /me - Get current user
 var operationArgFormat = regexp.MustCompile(`^([^\s]+)\s+([^\s]+)\s+-\s+(.+)$`)
 
-// e.g. provider_name in query
-var parameterArgFormat = regexp.MustCompile(`^([^\s]+)\s+in\s+([^\s]+)$`)
-
 // e.g. DisableUserExpiring - Disable a user with expiry
 var exampleArgFormat = regexp.MustCompile(`^([^\s]+)\s+-\s+(.+)$`)
-
-// e.g. 200 {AuthURLResponse}
-var responseRefArgFormat = regexp.MustCompile(`^([^\s]+)\s+{([^\s]+)}$`)
-
-// e.g. user_update {UserUpdateEvent}
-var callbackArgFormat = regexp.MustCompile(`^([^\s]+)\s+{([^\s]+)}$`)
 
 var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotationHandler{
 	AnnotationTypeID: func(ctx *context, arg string, body string) error {
@@ -110,14 +95,14 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		return nil
 	},
 	AnnotationTypeSecurityAPIKey: func(ctx *context, arg string, body string) error {
-		matches := apiKeySecArgFormat.FindStringSubmatch(arg)
-		if len(matches) != 4 {
+		fields := strings.Fields(arg)
+		if len(fields) != 3 {
 			return fmt.Errorf("must provide scheme name, parameter name and location")
 		}
 
-		name := matches[1]
-		apiKeyName := matches[2]
-		apiKeyLocation := openapi3.SecuritySchemeAPIKeyLocation(matches[3])
+		name := fields[0]
+		apiKeyLocation := openapi3.SecuritySchemeAPIKeyLocation(fields[1])
+		apiKeyName := fields[2]
 		if !apiKeyLocation.Validate() {
 			return fmt.Errorf("invalid API key location: %v", apiKeyLocation)
 		}
@@ -132,19 +117,19 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		return nil
 	},
 	AnnotationTypeSecurityHTTP: func(ctx *context, arg string, body string) error {
-		matches := httpSecArgFormat.FindStringSubmatch(arg)
-		if len(matches) < 3 {
+		fields := strings.Fields(arg)
+		if len(fields) < 2 {
 			return fmt.Errorf("must provide scheme name and HTTP auth scheme")
 		}
 
-		name := matches[1]
-		authScheme := strings.ToLower(matches[2])
+		name := fields[0]
+		authScheme := strings.ToLower(fields[1])
 		var bearerFormat string
 		if authScheme == "bearer" {
-			if len(matches) < 4 {
+			if len(fields) < 3 {
 				return fmt.Errorf("must provide bearer token format")
 			}
-			bearerFormat = matches[3]
+			bearerFormat = fields[2]
 		}
 
 		scheme := &openapi3.SecuritySchemeObject{
@@ -157,16 +142,16 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		return nil
 	},
 	AnnotationTypeOperation: func(ctx *context, arg string, body string) error {
-		matches := operationArgFormat.FindStringSubmatch(arg)
-		if len(matches) < 3 {
+		matches, success := matchRegex(arg, operationArgFormat)
+		if !success {
 			return fmt.Errorf("must provide HTTP method and path")
 		}
 
-		method := matches[1]
-		path := matches[2]
+		method := matches[0]
+		path := matches[1]
 		var summary string
-		if len(matches) == 4 {
-			summary = matches[3]
+		if len(matches) == 3 {
+			summary = matches[2]
 		}
 
 		operation := openapi3.NewOperationObject()
@@ -191,23 +176,23 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		return nil
 	},
 	AnnotationTypeParameter: func(ctx *context, arg string, body string) error {
-		matches := refArgFormat.FindStringSubmatch(arg)
-		if len(matches) == 2 {
+		matches, isRef := matchRegex(arg, refArgFormat)
+		if isRef {
 			if ctx.operation == nil {
 				return fmt.Errorf("must be used with Operation")
 			}
-			id := matches[1]
+			id := matches[0]
 			ctx.operation.Parameters = append(ctx.operation.Parameters, openapi3.MakeParameterRef(id))
 			return nil
 		}
 
-		matches = parameterArgFormat.FindStringSubmatch(arg)
-		if len(matches) < 3 {
+		fields := strings.Fields(arg)
+		if len(fields) != 2 {
 			return fmt.Errorf("must provide parameter name and location")
 		}
 
-		name := matches[1]
-		location := openapi3.ParameterLocation(matches[2])
+		name := fields[0]
+		location := openapi3.ParameterLocation(fields[1])
 		if !location.Validate() {
 			return fmt.Errorf("invalid parameter location: %v", location)
 		}
@@ -233,12 +218,12 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		return nil
 	},
 	AnnotationTypeRequestBody: func(ctx *context, arg string, body string) error {
-		matches := refArgFormat.FindStringSubmatch(arg)
-		if len(matches) == 2 {
+		matches, isRef := matchRegex(arg, refArgFormat)
+		if isRef {
 			if ctx.operation == nil {
 				return fmt.Errorf("must be used with Operation")
 			}
-			id := matches[1]
+			id := matches[0]
 			ctx.operation.RequestBody = openapi3.MakeRequestBodyRef(id)
 			return nil
 		}
@@ -273,21 +258,28 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 			ctx.setContextObject(response)
 		} else {
 			var response openapi3.Response
-			var responseKey string
-			matches := responseRefArgFormat.FindStringSubmatch(arg)
-			if len(matches) == 3 {
-				responseKey = matches[1]
-				id := matches[2]
-				response = openapi3.MakeResponseRef(id)
-			} else {
+			var statusCode string
+			fields := strings.Fields(arg)
+			switch len(fields) {
+			case 1:
 				responseObj := openapi3.NewResponseObject()
 				responseObj.Description = body
-				responseKey = arg
+				statusCode = fields[0]
 				response = responseObj
 				ctx.setContextObject(responseObj)
+			case 2:
+				statusCode = fields[0]
+				matches, success := matchRegex(fields[1], refArgFormat)
+				if !success {
+					return fmt.Errorf("invalid object reference format")
+				}
+				id := matches[0]
+				response = openapi3.MakeResponseRef(id)
+			default:
+				return fmt.Errorf("invalid response annotation format")
 			}
 
-			ctx.operation.Responses[responseKey] = response
+			ctx.operation.Responses[statusCode] = response
 		}
 
 		return nil
@@ -367,12 +359,12 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 			return errors.Wrap(err, "invalid json example")
 		}
 
-		matches := exampleArgFormat.FindStringSubmatch(arg)
-		if len(matches) != 3 {
+		matches, success := matchRegex(arg, exampleArgFormat)
+		if !success {
 			return fmt.Errorf("must provide example name and summary")
 		}
-		name := matches[1]
-		summary := matches[2]
+		name := matches[0]
+		summary := matches[1]
 
 		example := openapi3.ExampleObject{
 			Summary: summary,
@@ -413,15 +405,22 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		} else {
 			var callback openapi3.Callback
 			var callbackKey string
-			matches := callbackArgFormat.FindStringSubmatch(arg)
-			if len(matches) == 3 {
-				callbackKey = matches[1]
-				id := matches[2]
-				callback = openapi3.MakeCallbackRef(id)
-			} else {
+			fields := strings.Fields(arg)
+			switch len(fields) {
+			case 1:
 				callback = openapi3.NewCallbackObject()
-				callbackKey = arg
+				callbackKey = fields[0]
 				ctx.setContextObject(callback)
+			case 2:
+				callbackKey = fields[0]
+				matches, success := matchRegex(fields[1], refArgFormat)
+				if !success {
+					return fmt.Errorf("invalid object reference format")
+				}
+				id := matches[0]
+				callback = openapi3.MakeCallbackRef(id)
+			default:
+				return fmt.Errorf("invalid callback annotation format")
 			}
 
 			ctx.operation.Callbacks[callbackKey] = callback

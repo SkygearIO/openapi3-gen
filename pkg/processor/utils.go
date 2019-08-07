@@ -3,6 +3,7 @@ package processor
 import (
 	"go/ast"
 	"go/token"
+	"regexp"
 	"strconv"
 
 	"github.com/skygeario/openapi3-gen/pkg/openapi3"
@@ -79,5 +80,17 @@ func translateJSONSchema(json interface{}) interface{} {
 
 	default:
 		return json
+	}
+}
+
+func matchRegex(str string, re *regexp.Regexp) (matches []string, success bool) {
+	matches = re.FindStringSubmatch(str)
+	if len(matches) == 0 {
+		success = false
+		return
+	} else {
+		matches = matches[1:]
+		success = true
+		return
 	}
 }

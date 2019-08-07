@@ -35,9 +35,9 @@ func TestProcessor(t *testing.T) {
 						@Variable app my_app app1 app2 app3
 							App ID
 
-					@SecurityAPIKey api_key: X-API-Key in header
+					@SecurityAPIKey api_key header X-API-Key
 						API Key
-					@SecurityHTTP access_token: Bearer JWT
+					@SecurityHTTP access_token Bearer JWT
 						Access Token
 					@Security api_key
 					@Security access_token
@@ -128,7 +128,7 @@ func TestProcessor(t *testing.T) {
 				type TestCallback struct {}
 				
 				/*
-					@Parameter test in query
+					@Parameter test query
 						Test Parameter.
 				*/
 				type TestParameter string
@@ -313,10 +313,10 @@ func TestProcessor(t *testing.T) {
 	
 							@Tag User Object
 						
-							@Parameter id in path
+							@Parameter id path
 								ID of user in UUID format.
 								@JSONSchema
-									{ "type": "string"}
+									{ "type": "string" }
 
 							@RequestBody
 								Describe the new information of user.
