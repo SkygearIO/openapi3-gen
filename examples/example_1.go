@@ -10,11 +10,11 @@ package examples
 		@Variable env staging dev qa staging
 			Environment ID
 
-	@SecurityAPIKey admin_key: X-Admin-Key in header
+	@SecuritySchemeAPIKey admin_key header X-Admin-Key
 		Key for administrative operations
-	@SecurityHTTP access_token: Bearer JWT
+	@SecuritySchemeHTTP access_token Bearer JWT
 		Access Token
-	@Security access_token
+	@SecurityRequirement access_token
 
 	@Tag User
 		User APIs
@@ -23,7 +23,7 @@ func Main() {
 }
 
 /*
-	@Parameter id in path as UserID
+	@Parameter id path
 		ID of user in UUID format.
 		@JSONSchema
 			{ "type": "string" }
@@ -33,7 +33,7 @@ type UserID string
 // @JSONSchema
 const UserSchema = `
 {
-	"$id": "User",
+	"$id": "#User",
 	"type": "object",
 	"properties": {
 		"id": { "type": "string" },
@@ -89,7 +89,7 @@ func GetUser(id UserID) UserResponse {
 		Create new user with specified information.
 
 		@Tag User
-		@Security admin_key
+		@SecurityRequirement admin_key
 
 		@RequestBody
 			Describe information of the user.
