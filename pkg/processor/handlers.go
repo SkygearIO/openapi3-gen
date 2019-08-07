@@ -320,6 +320,12 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 			jsonSchema = translateJSONSchema(jsonSchema).(map[string]interface{})
 
 			id, _ = jsonSchema["$id"].(string)
+			if len(id) > 0 {
+				if id[0] != '#' {
+					return fmt.Errorf("json schema ID must start with #")
+				}
+				id = id[1:]
+			}
 			delete(jsonSchema, "$id")
 
 			schema = jsonSchema

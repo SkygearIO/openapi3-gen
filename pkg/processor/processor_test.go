@@ -102,7 +102,7 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema = ` + "`" + `
 				{
-					"$id": "TestSchema",
+					"$id": "#TestSchema",
 					"type": "object"
 				}
 				` + "`" + `
@@ -201,7 +201,7 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema1 = ` + "`" + `
 				{
-					"$id": "TestSchema1",
+					"$id": "#TestSchema1",
 					"type": "string"
 				}
 				` + "`" + `
@@ -209,7 +209,7 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema2 = ` + "`" + `
 				{
-					"$id": "TestSchema2",
+					"$id": "#TestSchema2",
 					"type": "array",
 					"items": [
 						{ "type": "string" },
