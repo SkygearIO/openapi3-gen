@@ -10,6 +10,29 @@ import (
 
 const jsonMediaType = "application/json"
 
+func extractDeclName(n ast.Node) (name string, ok bool) {
+	switch typedNode := n.(type) {
+	case *ast.FuncDecl:
+		return typedNode.Name.Name, true
+
+	case *ast.GenDecl:
+		for _, spec := range typedNode.Specs {
+			name, ok = extractDeclName(spec)
+			if ok {
+				return
+			}
+		}
+
+	case *ast.ValueSpec:
+		return typedNode.Names[0].Name, true
+
+	case *ast.TypeSpec:
+		return typedNode.Name.Name, true
+	}
+
+	return
+}
+
 func extractConstValue(n ast.Node) (value string, ok bool) {
 	switch typedNode := n.(type) {
 	case *ast.GenDecl:

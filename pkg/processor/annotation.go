@@ -9,7 +9,8 @@ import (
 type AnnotationType int
 
 const (
-	AnnotationTypeAPI AnnotationType = iota
+	AnnotationTypeID AnnotationType = iota
+	AnnotationTypeAPI
 	AnnotationTypeVersion
 	AnnotationTypeServer
 	AnnotationTypeVariable

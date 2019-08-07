@@ -8,27 +8,28 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[AnnotationTypeAPI-0]
-	_ = x[AnnotationTypeVersion-1]
-	_ = x[AnnotationTypeServer-2]
-	_ = x[AnnotationTypeVariable-3]
-	_ = x[AnnotationTypeTag-4]
-	_ = x[AnnotationTypeSecurity-5]
-	_ = x[AnnotationTypeSecurityAPIKey-6]
-	_ = x[AnnotationTypeSecurityHTTP-7]
-	_ = x[AnnotationTypeOperation-8]
-	_ = x[AnnotationTypeParameter-9]
-	_ = x[AnnotationTypeRequestBody-10]
-	_ = x[AnnotationTypeResponse-11]
-	_ = x[AnnotationTypeJSONSchema-12]
-	_ = x[AnnotationTypeJSONExample-13]
-	_ = x[AnnotationTypeCallback-14]
-	_ = x[AnnotationTypeMaximum-15]
+	_ = x[AnnotationTypeID-0]
+	_ = x[AnnotationTypeAPI-1]
+	_ = x[AnnotationTypeVersion-2]
+	_ = x[AnnotationTypeServer-3]
+	_ = x[AnnotationTypeVariable-4]
+	_ = x[AnnotationTypeTag-5]
+	_ = x[AnnotationTypeSecurity-6]
+	_ = x[AnnotationTypeSecurityAPIKey-7]
+	_ = x[AnnotationTypeSecurityHTTP-8]
+	_ = x[AnnotationTypeOperation-9]
+	_ = x[AnnotationTypeParameter-10]
+	_ = x[AnnotationTypeRequestBody-11]
+	_ = x[AnnotationTypeResponse-12]
+	_ = x[AnnotationTypeJSONSchema-13]
+	_ = x[AnnotationTypeJSONExample-14]
+	_ = x[AnnotationTypeCallback-15]
+	_ = x[AnnotationTypeMaximum-16]
 }
 
-const _AnnotationType_name = "APIVersionServerVariableTagSecuritySecurityAPIKeySecurityHTTPOperationParameterRequestBodyResponseJSONSchemaJSONExampleCallbackMaximum"
+const _AnnotationType_name = "IDAPIVersionServerVariableTagSecuritySecurityAPIKeySecurityHTTPOperationParameterRequestBodyResponseJSONSchemaJSONExampleCallbackMaximum"
 
-var _AnnotationType_index = [...]uint8{0, 3, 10, 16, 24, 27, 35, 49, 61, 70, 79, 90, 98, 108, 119, 127, 134}
+var _AnnotationType_index = [...]uint8{0, 2, 5, 12, 18, 26, 29, 37, 51, 63, 72, 81, 92, 100, 110, 121, 129, 136}
 
 func (i AnnotationType) String() string {
 	if i < 0 || i >= AnnotationType(len(_AnnotationType_index)-1) {

@@ -9,9 +9,11 @@ import (
 )
 
 type context struct {
-	oapi *openapi3.OpenAPIObject
-	node ast.Node
+	astNodeName  string
+	astNodeValue string
+	componentID  string
 
+	oapi        *openapi3.OpenAPIObject
 	server      *openapi3.ServerObject
 	operation   *openapi3.OperationObject
 	parameter   *openapi3.ParameterObject
@@ -21,7 +23,14 @@ type context struct {
 }
 
 func newContext(oapi *openapi3.OpenAPIObject, node ast.Node) *context {
-	return &context{oapi: oapi, node: node}
+	name, _ := extractDeclName(node)
+	value, _ := extractConstValue(node)
+	return &context{
+		astNodeName:  name,
+		astNodeValue: value,
+		componentID:  name,
+		oapi:         oapi,
+	}
 }
 
 func (ctx *context) setContextObject(scope interface{}) {

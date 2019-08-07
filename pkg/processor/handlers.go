@@ -24,8 +24,8 @@ var httpSecArgFormat = regexp.MustCompile(`^([^\s]+)\s*:\s*([^\s]+)(?:\s+([^\s]+
 // e.g. GET /me - Get current user
 var operationArgFormat = regexp.MustCompile(`^([^\s]+)\s+([^\s]+)\s+-\s+(.+)$`)
 
-// e.g. provider_name in query as ProviderName
-var parameterArgFormat = regexp.MustCompile(`^([^\s]+)\s+in\s+([^\s]+)(?:\s+as\s+([^\s]+))?$`)
+// e.g. provider_name in query
+var parameterArgFormat = regexp.MustCompile(`^([^\s]+)\s+in\s+([^\s]+)$`)
 
 // e.g. DisableUserExpiring - Disable a user with expiry
 var exampleArgFormat = regexp.MustCompile(`^([^\s]+)\s+-\s+(.+)$`)
@@ -37,6 +37,10 @@ var responseRefArgFormat = regexp.MustCompile(`^([^\s]+)\s+{([^\s]+)}$`)
 var callbackArgFormat = regexp.MustCompile(`^([^\s]+)\s+{([^\s]+)}$`)
 
 var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotationHandler{
+	AnnotationTypeID: func(ctx *context, arg string, body string) error {
+		ctx.componentID = arg
+		return nil
+	},
 	AnnotationTypeAPI: func(ctx *context, arg string, body string) error {
 		ctx.oapi.Info.Title = arg
 		ctx.oapi.Info.Description = body
@@ -217,11 +221,11 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		if ctx.operation != nil {
 			ctx.operation.Parameters = append(ctx.operation.Parameters, parameter)
 		} else {
-			if len(matches) < 4 {
-				return fmt.Errorf("must provide reference ID")
+			if ctx.componentID == "" {
+				return fmt.Errorf("must provide component ID")
 			}
-			id := matches[3]
-			ctx.oapi.Components.Parameters[id] = parameter
+			ctx.oapi.Components.Parameters[ctx.componentID] = parameter
+			ctx.componentID = ""
 		}
 
 		ctx.setContextObject(parameter)
@@ -244,8 +248,11 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		if ctx.operation != nil {
 			ctx.operation.RequestBody = requestBody
 		} else {
-			id := arg
-			ctx.oapi.Components.RequestBodies[id] = requestBody
+			if ctx.componentID == "" {
+				return fmt.Errorf("must provide component ID")
+			}
+			ctx.oapi.Components.RequestBodies[ctx.componentID] = requestBody
+			ctx.componentID = ""
 		}
 
 		ctx.setContextObject(requestBody)
@@ -256,8 +263,14 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 		if ctx.operation == nil {
 			response := openapi3.NewResponseObject()
 			response.Description = body
-			ctx.oapi.Components.Responses[arg] = response
-			ctx.response = response
+
+			if ctx.componentID == "" {
+				return fmt.Errorf("must provide component ID")
+			}
+			ctx.oapi.Components.Responses[ctx.componentID] = response
+			ctx.componentID = ""
+
+			ctx.setContextObject(response)
 		} else {
 			var response openapi3.Response
 			var responseKey string
@@ -289,10 +302,11 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 			schema = openapi3.MakeSchemaRef(id)
 		} else {
 			schemaValue := body
-			valid := len(body) > 0
-			if !valid {
-				schemaValue, valid = extractConstValue(ctx.node)
+			if len(schemaValue) == 0 {
+				schemaValue = ctx.astNodeValue
 			}
+
+			valid := len(schemaValue) > 0
 			if !valid {
 				return fmt.Errorf("invalid json schema declaration")
 			}
@@ -382,8 +396,13 @@ var handlers map[AnnotationType]annotationHandler = map[AnnotationType]annotatio
 	},
 	AnnotationTypeCallback: func(ctx *context, arg string, body string) error {
 		if ctx.operation == nil {
+			if ctx.componentID == "" {
+				return fmt.Errorf("must provide component ID")
+			}
+
 			callback := openapi3.NewCallbackObject()
-			ctx.oapi.Components.Callbacks[arg] = callback
+			ctx.oapi.Components.Callbacks[ctx.componentID] = callback
+			ctx.componentID = ""
 			ctx.setContextObject(callback)
 		} else {
 			var callback openapi3.Callback

@@ -108,19 +108,19 @@ func TestProcessor(t *testing.T) {
 				` + "`" + `
 
 				/*
-					@RequestBody TestRequest
+					@RequestBody
 						Test Request.
 				*/
 				type TestRequest struct {}
 
 				/*
-					@Response TestResponse
+					@Response
 						Test Response.
 				*/
 				type TestResponse struct {}
 
 				/*
-					@Callback TestCallback
+					@Callback
 						Test Callback.
 						@Operation POST /test-1 - Test callback 1
 						@Operation PUT /test-1 - Test callback 2
@@ -128,7 +128,7 @@ func TestProcessor(t *testing.T) {
 				type TestCallback struct {}
 				
 				/*
-					@Parameter test in query as TestParameter
+					@Parameter test in query
 						Test Parameter.
 				*/
 				type TestParameter string
@@ -170,6 +170,27 @@ func TestProcessor(t *testing.T) {
 			})
 			So(oapi.Components.Parameters, ShouldResemble, map[string]*openapi3.ParameterObject{
 				"TestParameter": param,
+			})
+		})
+
+		Convey("should use specified component ID", func() {
+			oapi, errs := process(`
+				package main
+
+				/*
+					@ID EventContext
+					@RequestBody
+						Test Context.
+				*/
+				type Context struct {}
+			`)
+
+			requestBody := openapi3.NewRequestBodyObject()
+			requestBody.Description = "Test Context."
+
+			So(errs, ShouldBeEmpty)
+			So(oapi.Components.RequestBodies, ShouldResemble, map[string]*openapi3.RequestBodyObject{
+				"EventContext": requestBody,
 			})
 		})
 
