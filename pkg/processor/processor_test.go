@@ -197,6 +197,31 @@ func TestProcessor(t *testing.T) {
 			})
 		})
 
+		Convey("should handle dummy declaration", func() {
+			oapi, errs := process(`
+				package main
+
+				/*
+					@ID TestParam
+					@Parameter test query
+						Test Parameter.
+				*/
+				type _ string
+
+				var _ string
+			`)
+
+			param := openapi3.NewParameterObject()
+			param.Name = "test"
+			param.Location = openapi3.ParameterLocationQuery
+			param.Description = "Test Parameter."
+
+			So(errs, ShouldBeEmpty)
+			So(oapi.Components.Parameters, ShouldResemble, map[string]*openapi3.ParameterObject{
+				"TestParam": param,
+			})
+		})
+
 		Convey("should translate JSON Schemas", func() {
 			oapi, errs := process(`
 				package main

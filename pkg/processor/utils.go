@@ -45,6 +45,9 @@ func extractConstValue(n ast.Node) (value string, ok bool) {
 		}
 
 	case *ast.ValueSpec:
+		if len(typedNode.Values) == 0 {
+			return
+		}
 		if lit, valid := typedNode.Values[0].(*ast.BasicLit); valid && lit.Kind == token.STRING {
 			litValue, err := strconv.Unquote(lit.Value)
 			if err == nil {
