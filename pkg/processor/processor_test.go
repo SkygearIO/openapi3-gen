@@ -27,6 +27,7 @@ func TestProcessor(t *testing.T) {
 
 				/*
 					@API Test API
+						This is a test API.
 					@Version 1.0.0
 					@Server https://example.com/
 						Default API Server
@@ -53,6 +54,7 @@ func TestProcessor(t *testing.T) {
 
 			So(errs, ShouldBeEmpty)
 			So(oapi.Info.Title, ShouldEqual, "Test API")
+			So(oapi.Info.Description, ShouldEqual, "This is a test API.")
 			So(oapi.Info.Version, ShouldEqual, "1.0.0")
 			So(oapi.Servers, ShouldResemble, []openapi3.ServerObject{
 				openapi3.ServerObject{
