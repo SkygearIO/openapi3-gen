@@ -16,7 +16,7 @@ func init() {
 	}
 
 	flag.StringVar(&baseDir, "dir", workDir, "project base directory")
-	flag.StringVar(&outputFile, "output", "", "output OpenAPI specification file")
+	flag.StringVar(&outputFile, "output", "", "output OpenAPI specification file (stdout if empty)")
 }
 
 func main() {
