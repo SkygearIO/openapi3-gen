@@ -27,6 +27,7 @@ func TestProcessor(t *testing.T) {
 
 				/*
 					@API Test API
+						This is a test API.
 					@Version 1.0.0
 					@Server https://example.com/
 						Default API Server
@@ -35,12 +36,13 @@ func TestProcessor(t *testing.T) {
 						@Variable app my_app app1 app2 app3
 							App ID
 
-					@SecurityAPIKey api_key: X-API-Key in header
+					@SecuritySchemeAPIKey api_key header X-API-Key
 						API Key
-					@SecurityHTTP access_token: Bearer JWT
+					@SecuritySchemeHTTP access_token Bearer JWT
 						Access Token
-					@Security api_key
-					@Security access_token
+
+					@SecurityRequirement api_key
+					@SecurityRequirement access_token
 				
 					@Tag User
 						User APIs
@@ -52,6 +54,7 @@ func TestProcessor(t *testing.T) {
 
 			So(errs, ShouldBeEmpty)
 			So(oapi.Info.Title, ShouldEqual, "Test API")
+			So(oapi.Info.Description, ShouldEqual, "This is a test API.")
 			So(oapi.Info.Version, ShouldEqual, "1.0.0")
 			So(oapi.Servers, ShouldResemble, []openapi3.ServerObject{
 				openapi3.ServerObject{
@@ -102,25 +105,25 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema = ` + "`" + `
 				{
-					"$id": "TestSchema",
+					"$id": "#TestSchema",
 					"type": "object"
 				}
 				` + "`" + `
 
 				/*
-					@RequestBody TestRequest
+					@RequestBody
 						Test Request.
 				*/
 				type TestRequest struct {}
 
 				/*
-					@Response TestResponse
+					@Response
 						Test Response.
 				*/
 				type TestResponse struct {}
 
 				/*
-					@Callback TestCallback
+					@Callback
 						Test Callback.
 						@Operation POST /test-1 - Test callback 1
 						@Operation PUT /test-1 - Test callback 2
@@ -128,7 +131,7 @@ func TestProcessor(t *testing.T) {
 				type TestCallback struct {}
 				
 				/*
-					@Parameter test in query as TestParameter
+					@Parameter test query
 						Test Parameter.
 				*/
 				type TestParameter string
@@ -173,6 +176,52 @@ func TestProcessor(t *testing.T) {
 			})
 		})
 
+		Convey("should use specified component ID", func() {
+			oapi, errs := process(`
+				package main
+
+				/*
+					@ID EventContext
+					@RequestBody
+						Test Context.
+				*/
+				type Context struct {}
+			`)
+
+			requestBody := openapi3.NewRequestBodyObject()
+			requestBody.Description = "Test Context."
+
+			So(errs, ShouldBeEmpty)
+			So(oapi.Components.RequestBodies, ShouldResemble, map[string]*openapi3.RequestBodyObject{
+				"EventContext": requestBody,
+			})
+		})
+
+		Convey("should handle dummy declaration", func() {
+			oapi, errs := process(`
+				package main
+
+				/*
+					@ID TestParam
+					@Parameter test query
+						Test Parameter.
+				*/
+				type _ string
+
+				var _ string
+			`)
+
+			param := openapi3.NewParameterObject()
+			param.Name = "test"
+			param.Location = openapi3.ParameterLocationQuery
+			param.Description = "Test Parameter."
+
+			So(errs, ShouldBeEmpty)
+			So(oapi.Components.Parameters, ShouldResemble, map[string]*openapi3.ParameterObject{
+				"TestParam": param,
+			})
+		})
+
 		Convey("should translate JSON Schemas", func() {
 			oapi, errs := process(`
 				package main
@@ -180,7 +229,7 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema1 = ` + "`" + `
 				{
-					"$id": "TestSchema1",
+					"$id": "#TestSchema1",
 					"type": "string"
 				}
 				` + "`" + `
@@ -188,7 +237,7 @@ func TestProcessor(t *testing.T) {
 				// @JSONSchema
 				const TestSchema2 = ` + "`" + `
 				{
-					"$id": "TestSchema2",
+					"$id": "#TestSchema2",
 					"type": "array",
 					"items": [
 						{ "type": "string" },
@@ -236,7 +285,7 @@ func TestProcessor(t *testing.T) {
 							Create new user with specified information.
 	
 							@Tag User Object
-							@Security admin_key
+							@SecurityRequirement admin_key
 						
 							@RequestBody {CreateUserRequest}
 							@Response default {ErrorResponse}
@@ -292,10 +341,10 @@ func TestProcessor(t *testing.T) {
 	
 							@Tag User Object
 						
-							@Parameter id in path
+							@Parameter id path
 								ID of user in UUID format.
 								@JSONSchema
-									{ "type": "string"}
+									{ "type": "string" }
 
 							@RequestBody
 								Describe the new information of user.
